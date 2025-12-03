@@ -1,35 +1,37 @@
+import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
+import connectDB from './config/db.js';
+import authRoutes from './routes/authRoutes.js';
+import transactionRoutes from './routes/transactionRoutes.js';
+
 dotenv.config();
-import express from "express"
-import cors from "cors"
-import { connectDB } from "./config/db.js";
-import path from "path"
-import authRoutes from "./routes/authRoutes.js"
-import incomeRoutes from './routes/incomeRoutes.js';
-import expenseRoutes from "./routes/expenseRoutes.js"
-import { fileURLToPath } from 'url';
-import dashboardRoutes from './routes/dashboardRoutes.js';
 
-const app=express()
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(cors({
-    origin:process.env.CLIENT_URL||"*",
-    methods:["GET","POST","PUT","DELETE"],
-    allowedHeaders:["Content-Type","Authorization"] 
-}))
+connectDB();
 
-app.use(express.json())
+const app = express();
 
-const PORT=process.env.PORT||8080
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
+app.use('/api/auth', authRoutes);
+app.use('/api/transactions', transactionRoutes);
 
-app.use("/api/v1/auth",authRoutes)
-app.use("/api/v1/income",incomeRoutes)
-app.use("/api/v1/expense",expenseRoutes)
-app.use("/api/v1/dashboard",dashboardRoutes)
-app.use('/uploads', express.static(path.join(__dirname,'uploads')));
-app.listen(PORT,()=>{
-    connectDB()
-    console.log(`Server is running on port ${PORT}`)
-})
+app.get('/', (req, res) => {
+    res.send('API is running...');
+});
+
+// Error Handler
+app.use((err, req, res, next) => {
+    const statusCode = res.statusCode ? res.statusCode : 500;
+    res.status(statusCode);
+    res.json({
+        message: err.message,
+        stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+    });
+});
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
