@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
     res.send('API is running...');
 });
 
-// Error Handler
+
 app.use((err, req, res, next) => {
     const statusCode = res.statusCode ? res.statusCode : 500;
     res.status(statusCode);
